@@ -1,7 +1,10 @@
 # Usage: Please refer to README.md file in the home directory
 
-set(CMAKE_SYSTEM_NAME      Linux)
+# set(CMAKE_SYSTEM_NAME      Linux)
+set(CMAKE_SYSTEM_NAME      QNX)
 set(CMAKE_SYSTEM_PROCESSOR aarch64)
+set(ARCH_NAME aarch64le)
+set(arch gcc_ntoaarch64le)
 
 if (DEFINED ENV{CROSS_COMPILER_PREFIX})
     set(CROSS_COMPILER_PREFIX   $ENV{CROSS_COMPILER_PREFIX})
@@ -14,6 +17,9 @@ if (DEFINED ENV{CROSS_COMPILER_PATH})
     set(TOOLCHAIN_PREFIX        ${CROSS_COMPILER_PATH}/bin/${CROSS_COMPILER_PREFIX})
     set(CMAKE_C_COMPILER        ${TOOLCHAIN_PREFIX}gcc)
     set(CMAKE_CXX_COMPILER      ${TOOLCHAIN_PREFIX}g++)
+    set(CMAKE_CXX_FLAGS
+    "${CMAKE_EXE_LINKER_FLAGS} -lang-c++ -V${arch} -std=gnu++14")
+    set(CMAKE_FIND_ROOT_PATH "${CROSS_COMPILER_PATH}")
     set(CMAKE_AR                ${TOOLCHAIN_PREFIX}ar CACHE FILEPATH "")
     set(CMAKE_LINKER            ${TOOLCHAIN_PREFIX}ld)
     set(CMAKE_OBJCOPY           ${TOOLCHAIN_PREFIX}objcopy)
@@ -26,7 +32,8 @@ endif()
 
 if (DEFINED ENV{TARGET_FS})
     set(TARGET_FS               $ENV{TARGET_FS})
-    set(CMAKE_SYSROOT           ${TARGET_FS})
+    # set(CMAKE_SYSROOT           ${TARGET_FS})
+    set(CMAKE_SYSROOT           $ENV{QNX_TARGET})
 else()
     message("TARGET_FS not defined, Using /")
 endif()

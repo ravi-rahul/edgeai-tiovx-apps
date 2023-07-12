@@ -49,6 +49,7 @@ elseif ("${TARGET_SOC_LOWER}" STREQUAL "j784s4")
 elseif ("${TARGET_SOC_LOWER}" STREQUAL "am62a")
     set(TARGET_PLATFORM     SITARA)
     set(TARGET_CPU          A53)
+    set(TARGET_OS           QNX)
     set(TARGET_SOC          AM62A)
 else()
     message(FATAL_ERROR "SOC ${TARGET_SOC_LOWER} is not supported.")
@@ -63,8 +64,12 @@ add_definitions(
 
 set(DLPACK_INSTALL_DIR ${TARGET_FS}/usr/include/dlpack)
 
-link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
-                 ${TARGET_FS}/usr/lib/
+# link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
+#                  ${TARGET_FS}/usr/lib/
+#                  )
+link_directories($ENV{QNX_TARGET}/usr/lib
+                 $ENV{QNX_TARGET}/aarch64le/lib
+                 $ENV{QNX_TARGET}/aarch64le/usr/lib
                  )
 
 #message("PROJECT_SOURCE_DIR =" ${PROJECT_SOURCE_DIR})
@@ -72,6 +77,7 @@ link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
 
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/..
+                    $ENV{QNX_TARGET}/usr/include
                     ${PROJECT_SOURCE_DIR}/include
                     SYSTEM ${TARGET_FS}/usr/local/include
                     SYSTEM ${TARGET_FS}/usr/include/edgeai-tiovx-modules
@@ -122,7 +128,7 @@ function(build_app)
                           -Wl,--start-group
                           ${COMMON_LINK_LIBS}
                           ${TARGET_LINK_LIBS}
-                          ${SYSTEM_LINK_LIBS}
+                        #   ${SYSTEM_LINK_LIBS}
                           -Wl,--end-group)
 endfunction(build_app)
 
