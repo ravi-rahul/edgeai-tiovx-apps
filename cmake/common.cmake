@@ -40,6 +40,7 @@ set(TARGET_SOC_LOWER $ENV{SOC})
 if ("${TARGET_SOC_LOWER}" STREQUAL "j721e")
     set(TARGET_PLATFORM     J7)
     set(TARGET_CPU          A72)
+    set(TARGET_OS           QNX)
     set(TARGET_SOC          J721E)
 elseif ("${TARGET_SOC_LOWER}" STREQUAL "j721s2")
     set(TARGET_PLATFORM     J7)
@@ -52,6 +53,7 @@ elseif ("${TARGET_SOC_LOWER}" STREQUAL "j784s4")
 elseif ("${TARGET_SOC_LOWER}" STREQUAL "am62a")
     set(TARGET_PLATFORM     SITARA)
     set(TARGET_CPU          A53)
+    set(TARGET_OS           QNX)
     set(TARGET_SOC          AM62A)
 else()
     message(FATAL_ERROR "SOC ${TARGET_SOC_LOWER} is not supported.")
@@ -64,10 +66,23 @@ add_definitions(
     -DSOC_${TARGET_SOC}
 )
 
+add_definitions(
+    -D_QNX_SOURCE
+    # -DASIO_HAS_PTHREADS
+)
+
 set(DLPACK_INSTALL_DIR ${TARGET_FS}/usr/include/dlpack)
 
-link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
-                 ${TARGET_FS}/usr/lib/
+# link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
+#                  ${TARGET_FS}/usr/lib/
+#                  )
+link_directories($ENV{QNX_TARGET}/usr/lib
+                 $ENV{QNX_TARGET}/aarch64le/lib
+                 $ENV{QNX_TARGET}/aarch64le/usr/lib
+                #  $ENV{QNX_TARGET}/aarch64le/
+                #  ${TARGET_FS}/usr/lib/
+                /workspace/shubham/ti/j721e_qnx/workarea/psdkqa/qnxfs/tilib
+                /workspace/shubham/ti/yaml-cpp/build
                  )
 
 #message("PROJECT_SOURCE_DIR =" ${PROJECT_SOURCE_DIR})
@@ -75,6 +90,7 @@ link_directories(${TARGET_FS}/usr/lib/aarch64-linux-gnu
 
 include_directories(${PROJECT_SOURCE_DIR}
                     ${PROJECT_SOURCE_DIR}/..
+                    $ENV{QNX_TARGET}/usr/include
                     ${PROJECT_SOURCE_DIR}/include
                     SYSTEM ${TARGET_FS}/usr/local/include
                     SYSTEM ${TARGET_FS}/usr/include/edgeai-tiovx-modules
@@ -95,6 +111,7 @@ include_directories(${PROJECT_SOURCE_DIR}
                     SYSTEM ${TARGET_FS}/usr/include/processor_sdk/video_io/kernels/include/
                     SYSTEM ${TARGET_FS}/usr/include/processor_sdk/imaging
                     SYSTEM ${TARGET_FS}/usr/include/processor_sdk/imaging/kernels/include/
+                    SYSTEM /workspace/shubham/ti/yaml-cpp/include
                     )
 
 set(COMMON_LINK_LIBS
@@ -103,14 +120,15 @@ set(COMMON_LINK_LIBS
     edgeai-tiovx-kernels
     edgeai-tiovx-modules
     edgeai-apps-utils
+    tivision_apps
+    yaml-cpp
+    c++fs
     )
 
 set(SYSTEM_LINK_LIBS
     ncurses
     tinfo
-    yaml-cpp
     pthread
-    tivision_apps
     dl
     )
 
@@ -125,7 +143,7 @@ function(build_app)
                           -Wl,--start-group
                           ${COMMON_LINK_LIBS}
                           ${TARGET_LINK_LIBS}
-                          ${SYSTEM_LINK_LIBS}
+                        #   ${SYSTEM_LINK_LIBS}
                           -Wl,--end-group)
 endfunction(build_app)
 
