@@ -61,7 +61,11 @@
  */
 
 #include <tiovx_sensor_module.h>
+#include <pthread.h> 
 
+static pthread_mutex_t lock;
+SensorObj g_sensorObj;
+int g_sensor_query_done = 0;
 static char availableSensorNames[ISS_SENSORS_MAX_SUPPORTED_SENSOR][ISS_SENSORS_MAX_NAME];
 
 vx_status tiovx_init_sensor_obj(SensorObj *sensorObj, char *objName)
@@ -121,6 +125,12 @@ vx_status tiovx_sensor_query(SensorObj *sensorObj)
     vx_uint16 selectedSensor = 0xFFF;
     int32_t i;
 
+    pthread_mutex_lock(&lock);
+    if (g_sensor_query_done) {
+        *sensorObj = g_sensorObj;
+        pthread_mutex_unlock(&lock);
+        return status;
+    }
     memset(availableSensorNames,
            0,
            (ISS_SENSORS_MAX_SUPPORTED_SENSOR * ISS_SENSORS_MAX_NAME));
@@ -248,6 +258,10 @@ vx_status tiovx_sensor_query(SensorObj *sensorObj)
     TIOVX_MODULE_PRINTF("Sensor DCC ID = %d\n", sensorObj->sensorParams.dccId);
     TIOVX_MODULE_PRINTF("Sensor Supported Features = 0x%08X\n", sensorObj->sensor_features_supported);
     TIOVX_MODULE_PRINTF("Sensor Enabled Features = 0x%08X\n", sensorObj->sensor_features_enabled);
+
+    g_sensorObj = *sensorObj;
+    g_sensor_query_done = 1;
+    pthread_mutex_unlock(&lock);
 
     return status;
 }
